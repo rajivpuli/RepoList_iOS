@@ -23,7 +23,7 @@ class RepoDetailsViewModel: NSObject {
         
         APIManager.shared.urlQueryParameters.addInt(value: 1,
                                                     forKey: SearchAPIQueryKeys.page.rawValue)
-        APIManager.shared.urlQueryParameters.add(value: TOKEN,
+        APIManager.shared.requestHTTPHeaders.add(value: TOKEN,
                                                     forKey: SearchAPIQueryKeys.accessToken.rawValue)
         
         APIManager.shared.makeRequest(toURL: url, withHttpMethod: .get) { (results) in

@@ -16,6 +16,7 @@ class RepoDetailsViewController: UIViewController {
     @IBOutlet weak var contributorsTblView: UITableView!
     
     var repoDetailsViewModel = RepoDetailsViewModel()
+    var segueIdToCodeVC = "detailsToCode"
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -62,15 +63,28 @@ class RepoDetailsViewController: UIViewController {
     func updateUI() {
         ownerNameLabel.text = repoDetailsViewModel.repoObj?.owner?.login
         repoNameLabel.text = repoDetailsViewModel.repoObj?.name
-        desciptionLabel.text = repoDetailsViewModel.repoObj?.description
+        desciptionLabel.text = repoDetailsViewModel.repoObj?.itemDescription
         
-        avatarIcon?.loadThumbnail(urlSting: repoDetailsViewModel.repoObj?.owner?.avatarURL ?? "", placeHolder: "")
+        avatarIcon?.loadThumbnail(urlSting: repoDetailsViewModel.repoObj?.owner?.avatarURL ?? "personPlaceHolder", placeHolder: "")
     }
     
     @IBAction func browseCodeTapped(_ sender: UIButton) {
-        
+        self.performSegue(withIdentifier: segueIdToCodeVC, sender: self)
     }
 
+}
+
+extension RepoDetailsViewController {
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == segueIdToCodeVC {
+            if let destVC = segue.destination as? RepoCodeViewController {
+                destVC.repoCodeViewModel.repoURL = repoDetailsViewModel.repoObj?.htmlURL ?? ""
+                destVC.repoCodeViewModel.repoName = repoDetailsViewModel.repoObj?.name ?? ""
+            }
+        }
+    }
+    
 }
 
 extension RepoDetailsViewController: UITableViewDataSource {
@@ -86,6 +100,10 @@ extension RepoDetailsViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "repoDetailsCell", for: indexPath)
         cell.textLabel?.text = repoDetailsViewModel.contributorsList[indexPath.row].login
+        cell.imageView?.image = UIImage(named: "personPlaceHolder")
+        cell.imageView?.loadThumbnail(urlSting: repoDetailsViewModel.contributorsList[indexPath.row].avatarURL ?? "", placeHolder: "personPlaceHolder")
+        cell.imageView?.clipsToBounds = true
+        cell.imageView?.layer.cornerRadius = 25
         return cell
     }
     

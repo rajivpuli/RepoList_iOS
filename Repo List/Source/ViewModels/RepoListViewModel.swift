@@ -38,7 +38,7 @@ class RepoListViewModel: NSObject {
                                                     forKey: SearchAPIQueryKeys.per_page.rawValue)
         APIManager.shared.urlQueryParameters.addInt(value: pageNumber,
                                                     forKey: SearchAPIQueryKeys.page.rawValue)
-        APIManager.shared.urlQueryParameters.add(value: TOKEN,
+        APIManager.shared.requestHTTPHeaders.add(value: TOKEN,
                                                     forKey: SearchAPIQueryKeys.accessToken.rawValue)
         
         APIManager.shared.makeRequest(toURL: url, withHttpMethod: .get) { (results) in
@@ -59,11 +59,11 @@ class RepoListViewModel: NSObject {
                             self.pageNumber += 1
                             if isNewRequest {
                                 self.repoList = response.items ?? []
-                                self.repoListData.value = self.repoList
+                                DBHelper.shared.insertRepo(data: self.repoList)
                             } else {
                                 self.repoList.append(contentsOf: response.items ?? [])
-                                self.repoListData.value = self.repoList
                             }
+                            self.repoListData.value = self.repoList
                         }
                     }
                 }
@@ -94,6 +94,13 @@ class RepoListViewModel: NSObject {
     func cancelRequest() {
         pageNumber = 1
         APIManager.shared.cancelPrevRequest()
+    }
+    
+    func clearData() {
+        pageNumber = 1
+        APIManager.shared.cancelPrevRequest()
+        self.repoList = []
+        self.repoListData.value = self.repoList
     }
     
 }

@@ -10,7 +10,7 @@ import Foundation
 let REQUEST_TIME_OUT: TimeInterval = 20
 let repoBaseURL = "https://api.github.com/search/repositories"
 let PAGE_COUNT = 10
-let TOKEN = "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"
+let TOKEN = "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"
 
 
 enum SearchAPIQueryKeys: String {

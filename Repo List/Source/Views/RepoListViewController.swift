@@ -34,10 +34,11 @@ class RepoListViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         tableView.reloadData()
+        DBHelper.shared.getRepoList()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-//        removeKeyboardObservers()
+        removeKeyboardObservers()
     }
     
     func bindData() {
@@ -81,9 +82,7 @@ class RepoListViewController: UIViewController {
     }
     
     func removeKeyboardObservers() {
-        NotificationCenter.default.removeObserver(self, forKeyPath: UIResponder.keyboardWillShowNotification.rawValue, context: nil)
-        
-        NotificationCenter.default.removeObserver(self, forKeyPath: UIResponder.keyboardWillHideNotification.rawValue, context: nil)
+        NotificationCenter.default.removeObserver(self)
     }
 
     @objc func keyboardWillShow(_ notification:Notification) {
@@ -120,9 +119,10 @@ class RepoListViewController: UIViewController {
     
     func showLoader() {
         activityIndicator.frame = tableView.frame
+        activityIndicator.startAnimating()
+        activityIndicator.color = .black
         self.view.addSubview(activityIndicator)
         self.view.bringSubviewToFront(activityIndicator)
-        activityIndicator.startAnimating()
     }
     
     func hideLoader() {
@@ -162,6 +162,7 @@ extension RepoListViewController: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "repoCell", for: indexPath)
         cell.accessoryType = .disclosureIndicator
         cell.textLabel?.text = repoListViewModel.repoList[indexPath.row].name
+        cell.detailTextLabel?.text = repoListViewModel.repoList[indexPath.row].owner?.login
         
         if indexPath.row == (repoListViewModel.repoList.count - 1) {
             repoListViewModel.loadMorePages()
@@ -203,11 +204,20 @@ extension RepoListViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.count > 0 {
             showLoader()
+            tableView.restore()
             repoListViewModel.callSearchAPI(query: searchText, isNewRequest: true)
         } else {
             hideLoader()
-            repoListViewModel.cancelRequest()
+            repoListViewModel.clearData()
         }
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        print("SearchButtonTapped")
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        repoListViewModel.clearData()
     }
     
 }

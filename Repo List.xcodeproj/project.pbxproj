@@ -26,6 +26,9 @@
 		9D9B4DA926C3F6A200D3AAA3 /* SelfSizeTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9B4DA826C3F6A200D3AAA3 /* SelfSizeTable.swift */; };
 		9D9B4DAD26C3F71000D3AAA3 /* ImageDownload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9B4DAC26C3F71000D3AAA3 /* ImageDownload.swift */; };
 		9D9B4DAF26C3F90300D3AAA3 /* RepoDetailsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9B4DAE26C3F90300D3AAA3 /* RepoDetailsViewModel.swift */; };
+		9D9B4DB126C4097600D3AAA3 /* RepoCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9B4DB026C4097600D3AAA3 /* RepoCodeViewController.swift */; };
+		9D9B4DB326C40A3B00D3AAA3 /* RepoCodeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9B4DB226C40A3B00D3AAA3 /* RepoCodeViewModel.swift */; };
+		9D9B4DB726C4312E00D3AAA3 /* DBHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9B4DB626C4312E00D3AAA3 /* DBHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +53,9 @@
 		9D9B4DA826C3F6A200D3AAA3 /* SelfSizeTable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelfSizeTable.swift; sourceTree = "<group>"; };
 		9D9B4DAC26C3F71000D3AAA3 /* ImageDownload.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageDownload.swift; sourceTree = "<group>"; };
 		9D9B4DAE26C3F90300D3AAA3 /* RepoDetailsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepoDetailsViewModel.swift; sourceTree = "<group>"; };
+		9D9B4DB026C4097600D3AAA3 /* RepoCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepoCodeViewController.swift; sourceTree = "<group>"; };
+		9D9B4DB226C40A3B00D3AAA3 /* RepoCodeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepoCodeViewModel.swift; sourceTree = "<group>"; };
+		9D9B4DB626C4312E00D3AAA3 /* DBHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,12 +89,9 @@
 			isa = PBXGroup;
 			children = (
 				9D9B4D9A26C2C23400D3AAA3 /* Application */,
-				9D9B4D9126C2BC4F00D3AAA3 /* APIService */,
-				9D9B4D8C26C2B82E00D3AAA3 /* Views */,
-				9D9B4D8D26C2B83500D3AAA3 /* ViewModels */,
-				9D9B4D8E26C2B84300D3AAA3 /* Models */,
-				9D9B4D9B26C2C24000D3AAA3 /* StoryBoard */,
+				9D9B4DB526C4310300D3AAA3 /* Source */,
 				9D9B4D9D26C2C3C200D3AAA3 /* SupportingFiles */,
+				9D9B4DB426C430D900D3AAA3 /* Helper */,
 				9D9B4D8126C2B82800D3AAA3 /* Assets.xcassets */,
 				9D9B4D7E26C2B82600D3AAA3 /* Repo_List.xcdatamodeld */,
 				9D9B4D8626C2B82800D3AAA3 /* Info.plist */,
@@ -101,6 +104,7 @@
 			children = (
 				9D9B4D9626C2BF4B00D3AAA3 /* RepoListViewController.swift */,
 				9D9B4DA426C3E31B00D3AAA3 /* RepoDetailsViewController.swift */,
+				9D9B4DB026C4097600D3AAA3 /* RepoCodeViewController.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -110,6 +114,7 @@
 			children = (
 				9D9B4D9826C2BF8700D3AAA3 /* RepoListViewModel.swift */,
 				9D9B4DAE26C3F90300D3AAA3 /* RepoDetailsViewModel.swift */,
+				9D9B4DB226C40A3B00D3AAA3 /* RepoCodeViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -157,9 +162,29 @@
 				9D9B4D9426C2BCAD00D3AAA3 /* Constants.swift */,
 				9D9B4D9E26C2C3EE00D3AAA3 /* Observable.swift */,
 				9D9B4DA826C3F6A200D3AAA3 /* SelfSizeTable.swift */,
-				9D9B4DAC26C3F71000D3AAA3 /* ImageDownload.swift */,
 			);
 			path = SupportingFiles;
+			sourceTree = "<group>";
+		};
+		9D9B4DB426C430D900D3AAA3 /* Helper */ = {
+			isa = PBXGroup;
+			children = (
+				9D9B4DAC26C3F71000D3AAA3 /* ImageDownload.swift */,
+				9D9B4DB626C4312E00D3AAA3 /* DBHelper.swift */,
+			);
+			path = Helper;
+			sourceTree = "<group>";
+		};
+		9D9B4DB526C4310300D3AAA3 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				9D9B4D8C26C2B82E00D3AAA3 /* Views */,
+				9D9B4D8D26C2B83500D3AAA3 /* ViewModels */,
+				9D9B4D8E26C2B84300D3AAA3 /* Models */,
+				9D9B4D9B26C2C24000D3AAA3 /* StoryBoard */,
+				9D9B4D9126C2BC4F00D3AAA3 /* APIService */,
+			);
+			path = Source;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -239,13 +264,16 @@
 				9D9B4D9326C2BC7C00D3AAA3 /* APIManager.swift in Sources */,
 				9D9B4D9026C2B86D00D3AAA3 /* GithubRepoResponse.swift in Sources */,
 				9D9B4DA726C3F39E00D3AAA3 /* ContributorsResponseModel.swift in Sources */,
+				9D9B4DB326C40A3B00D3AAA3 /* RepoCodeViewModel.swift in Sources */,
 				9D9B4D7626C2B82600D3AAA3 /* AppDelegate.swift in Sources */,
 				9D9B4DA126C3B15F00D3AAA3 /* Error+Extension.swift in Sources */,
 				9D9B4D9F26C2C3EE00D3AAA3 /* Observable.swift in Sources */,
 				9D9B4DA926C3F6A200D3AAA3 /* SelfSizeTable.swift in Sources */,
 				9D9B4D9526C2BCAD00D3AAA3 /* Constants.swift in Sources */,
 				9D9B4D7826C2B82600D3AAA3 /* SceneDelegate.swift in Sources */,
+				9D9B4DB726C4312E00D3AAA3 /* DBHelper.swift in Sources */,
 				9D9B4DAF26C3F90300D3AAA3 /* RepoDetailsViewModel.swift in Sources */,
+				9D9B4DB126C4097600D3AAA3 /* RepoCodeViewController.swift in Sources */,
 				9D9B4D8026C2B82600D3AAA3 /* Repo_List.xcdatamodeld in Sources */,
 				9D9B4D9926C2BF8700D3AAA3 /* RepoListViewModel.swift in Sources */,
 			);
