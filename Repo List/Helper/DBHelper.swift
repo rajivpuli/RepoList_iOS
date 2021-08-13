@@ -20,6 +20,8 @@ public class DBHelper: NSObject {
         }
     }
     
+    func instantiate() {}
+    
     func insertRepo(data: [Item]) {
         if let repoListEntity = NSEntityDescription.entity(forEntityName: "RepoList", in: managedContext) {
             for obj in data {
@@ -40,17 +42,44 @@ public class DBHelper: NSObject {
         }
     }
     
-    func getRepoList() -> [RepoList]{
+    func getRepoList() -> [Item]{
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "RepoList")
         do {
             if let result = try managedContext.fetch(fetchRequest) as? [RepoList] {
-                return result
+                var response = [Item]()
+                for obj in result {
+                    let responseItem = Item()
+                    responseItem.name = obj.name
+                    responseItem.owner = .init()
+                    responseItem.owner?.avatarURL = obj.avatar_url
+                    responseItem.owner?.login = obj.login
+                    responseItem.contributorsURL = obj.contributors_url
+                    responseItem.htmlURL = obj.html_url
+                    responseItem.id = Int(obj.id)
+                    responseItem.itemDescription = obj.repoDescription
+                    response.append(responseItem)
+                }
+                return response
             }
             return []
         } catch let error as NSError{
             print("Could not retrieve \(error), \(error.userInfo)")
         }
         return []
+    }
+    
+    func removeRepoListData() {
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "RepoList")
+        do {
+            if let result = try managedContext.fetch(fetchRequest) as? [RepoList] {
+                for obj in result {
+                    managedContext.delete(obj)
+                }
+                try managedContext.save()
+            }
+        } catch let error as NSError{
+            print("Could not delete \(error), \(error.userInfo)")
+        }
     }
     
 }

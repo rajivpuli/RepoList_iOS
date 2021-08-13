@@ -12,6 +12,7 @@ class RepoDetailsViewModel: NSObject {
     var repoObj: Item?
     
     var contributorsData: Observable<[ContributorsResponseModel]?> = Observable(nil)
+    var contributorsReponseMsg: Observable<String?> = Observable(nil)
     var errorMessage: Observable<String?> = Observable(nil)
     
     var contributorsList: [ContributorsResponseModel] = []
@@ -27,6 +28,7 @@ class RepoDetailsViewModel: NSObject {
                                                     forKey: SearchAPIQueryKeys.accessToken.rawValue)
         
         APIManager.shared.makeRequest(toURL: url, withHttpMethod: .get) { (results) in
+            self.contributorsReponseMsg.value = ""
             if results.error == nil{
                 if results.response?.httpStatusCode == 200{
                     if let data = results.data {
@@ -45,7 +47,13 @@ class RepoDetailsViewModel: NSObject {
                     }
                 }
                 else{
-                    self.errorMessage.value = "\(results.response?.httpStatusCode ?? 0)"
+                    switch results.response?.httpStatusCode {
+                    case ErrorCodes.noContent.rawValue:
+                        self.contributorsReponseMsg.value = ErrorCodes.noContent.getDescription()
+                        break
+                    default:
+                        self.errorMessage.value = "\(results.response?.httpStatusCode ?? 0)"
+                    }
                 }
             }
             else {

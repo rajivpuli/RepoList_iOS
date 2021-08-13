@@ -18,11 +18,13 @@ class RepoListViewModel: NSObject {
     var pageNumber = 1
     var searchText = ""
     var selectedRepo: Item?
+    var isPrevRequestCompleted = true
     
     func callSearchAPI(query name: String, isNewRequest: Bool) {
         searchText = name
         if isNewRequest {
             cancelRequest()
+            loadOfflineData(query: searchText)
         }
         
         guard let url = URL(string: repoBaseURL) else{ return }
@@ -40,27 +42,29 @@ class RepoListViewModel: NSObject {
                                                     forKey: SearchAPIQueryKeys.page.rawValue)
         APIManager.shared.requestHTTPHeaders.add(value: TOKEN,
                                                     forKey: SearchAPIQueryKeys.accessToken.rawValue)
+        APIManager.shared.requestHTTPHeaders.add(value: "rajivpuli",
+                                                    forKey: SearchAPIQueryKeys.userAgent.rawValue)
         
         APIManager.shared.makeRequest(toURL: url, withHttpMethod: .get) { (results) in
+            self.isPrevRequestCompleted = true
+            self.noMoreRecords.value = false
             if results.error == nil{
                 if results.response?.httpStatusCode == 200{
                     if let data = results.data {
                         let decoder = JSONDecoder()
                         do{
-                            do {
-                                let decodedResponse = try JSONDecoder().decode(GithubRepoResponse.self, from: data)
-                              } catch let jsonError as NSError {
-                                print("JSON decode failed: \(jsonError.localizedDescription)")
-                              }
-
-                            
                             guard let response = try? decoder.decode(GithubRepoResponse.self, from: data) else { return }
                             self.totalCount = response.totalCount
                             self.pageNumber += 1
                             if isNewRequest {
                                 self.repoList = response.items ?? []
+                                UserDefaultHelper.shared.add(value: self.searchText, forKey: searchKeyForUserDefault)
+                                DBHelper.shared.removeRepoListData()
                                 DBHelper.shared.insertRepo(data: self.repoList)
                             } else {
+                                if self.repoList.count == 10 {
+                                    DBHelper.shared.insertRepo(data: response.items?.suffix(5) ?? [])
+                                }
                                 self.repoList.append(contentsOf: response.items ?? [])
                             }
                             self.repoListData.value = self.repoList
@@ -80,14 +84,27 @@ class RepoListViewModel: NSObject {
                 }
             }
         }
+
+    }
+    
+    func loadOfflineData(query: String) {
+        if let savedKey = UserDefaultHelper.shared.getValue(forKey: searchKeyForUserDefault), savedKey == query {
+            let localData = DBHelper.shared.getRepoList()
+            self.repoList = localData
+            self.repoListData.value = self.repoList
+        } else {
+//            self.repoList = []
+//            self.repoListData.value = self.repoList
+        }
     }
     
     func loadMorePages() {
-        if totalCount > repoList.count {
-            self.noMoreRecords.value = false
+        if totalCount > repoList.count && isPrevRequestCompleted {
+            isPrevRequestCompleted = false
+//            self.noMoreRecords.value = false
             self.callSearchAPI(query: searchText, isNewRequest: false)
         } else {
-//            self.noMoreRecords.value = true
+            self.noMoreRecords.value = true
         }
     }
     
@@ -101,6 +118,7 @@ class RepoListViewModel: NSObject {
         APIManager.shared.cancelPrevRequest()
         self.repoList = []
         self.repoListData.value = self.repoList
+        self.noMoreRecords.value = false
     }
     
 }

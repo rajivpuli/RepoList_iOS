@@ -8,20 +8,27 @@
 import UIKit
 
 class RepoListViewController: UIViewController {
+    
 
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var networkStatusView: UIView!
+    @IBOutlet weak var networkStatusHeightConstraint: NSLayoutConstraint!
+    @IBOutlet weak var networkStatusLabel: UILabel!
     
     var activityIndicator = UIActivityIndicatorView()
     
     var repoListViewModel = RepoListViewModel()
     let segueIdOfDetailsVC = "showDetails"
     
+    var isDataLoading = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         tableView.dataSource = self
         tableView.delegate = self
+        
         searchBar.delegate = self
         bindData()
         addKeyboardObservers()
@@ -34,7 +41,11 @@ class RepoListViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         tableView.reloadData()
-        DBHelper.shared.getRepoList()
+        networkStatusChanged(status: NetworkMonitor.shared.isReachable)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        NetworkMonitor.shared.delegate = self
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -133,7 +144,7 @@ class RepoListViewController: UIViewController {
     }
     
     func addTableViewFooter(input: Bool) {
-        if input {
+        if input && repoListViewModel.repoList.count > 0{
             let customView = UIView(frame: CGRect(x: 0, y: 0, width: self.tableView.frame.size.width, height: 30))
             customView.backgroundColor = .white
             let label = UILabel(frame: customView.frame)
@@ -143,7 +154,18 @@ class RepoListViewController: UIViewController {
             label.font = .italicSystemFont(ofSize: 15)
             customView.addSubview(label)
             self.tableView.tableFooterView = customView
+        } else  {
+            self.tableView.tableFooterView = UIView(frame: .zero)
         }
+    }
+    
+    func addLoadingFooter() {
+        let spinner = UIActivityIndicatorView(style: .gray)
+        spinner.startAnimating()
+        spinner.frame = CGRect(x: CGFloat(0), y: CGFloat(0), width: tableView.bounds.width, height: CGFloat(44))
+
+        self.tableView.tableFooterView = spinner
+        self.tableView.tableFooterView?.isHidden = false
     }
 
 }
@@ -162,11 +184,7 @@ extension RepoListViewController: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "repoCell", for: indexPath)
         cell.accessoryType = .disclosureIndicator
         cell.textLabel?.text = repoListViewModel.repoList[indexPath.row].name
-        cell.detailTextLabel?.text = repoListViewModel.repoList[indexPath.row].owner?.login
-        
-        if indexPath.row == (repoListViewModel.repoList.count - 1) {
-            repoListViewModel.loadMorePages()
-        }
+//        cell.detailTextLabel?.text = repoListViewModel.repoList[indexPath.row].owner?.login
         
         return cell
     }
@@ -176,16 +194,16 @@ extension RepoListViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if (indexPath.row == (repoListViewModel.repoList.count - 1)) {
-            let spinner = UIActivityIndicatorView(style: .gray)
-            spinner.startAnimating()
-            spinner.frame = CGRect(x: CGFloat(0), y: CGFloat(0), width: tableView.bounds.width, height: CGFloat(44))
-
-            self.tableView.tableFooterView = spinner
-            self.tableView.tableFooterView?.isHidden = false
-        } else {
-            self.tableView.tableFooterView = UIView(frame: .zero)
-        }
+//        if (indexPath.row == (repoListViewModel.repoList.count - 1)) {
+//            let spinner = UIActivityIndicatorView(style: .gray)
+//            spinner.startAnimating()
+//            spinner.frame = CGRect(x: CGFloat(0), y: CGFloat(0), width: tableView.bounds.width, height: CGFloat(44))
+//
+//            self.tableView.tableFooterView = spinner
+//            self.tableView.tableFooterView?.isHidden = false
+//        } else {
+//            self.tableView.tableFooterView = UIView(frame: .zero)
+//        }
     }
     
 }
@@ -197,27 +215,75 @@ extension RepoListViewController: UITableViewDelegate {
         self.performSegue(withIdentifier: segueIdOfDetailsVC, sender: self)
     }
     
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        
+        print("scrollViewWillBeginDragging")
+        isDataLoading = false
+    }
+    
+    
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        print("scrollViewDidEndDecelerating")
+    }
+    //Pagination
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        print("scrollViewDidEndDragging")
+        if ((tableView.contentOffset.y + tableView.frame.size.height) >= tableView.contentSize.height)
+        {
+            if NetworkMonitor.shared.isReachable {
+                if !isDataLoading{
+                    isDataLoading = true
+                    addLoadingFooter()
+                    repoListViewModel.loadMorePages()
+                }
+            }
+        }
+    }
+
+    
 }
 
 extension RepoListViewController: UISearchBarDelegate {
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText.count > 0 {
-            showLoader()
-            tableView.restore()
-            repoListViewModel.callSearchAPI(query: searchText, isNewRequest: true)
+        tableView.restore()
+        showLoader()
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.callSearchAPI(_:)), object: searchBar)
+        
+        if let query = searchBar.text, query.trimmingCharacters(in: .whitespaces) != "" {
+            repoListViewModel.loadOfflineData(query: query)
+            perform(#selector(self.callSearchAPI(_:)), with: searchBar, afterDelay: DELAY_TO_SEND_REQUEST)
         } else {
             hideLoader()
             repoListViewModel.clearData()
         }
     }
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        print("SearchButtonTapped")
+
+    @objc func reload(_ searchBar: UISearchBar) {
+        guard let query = searchBar.text, query.trimmingCharacters(in: .whitespaces) != "" else {
+            print("nothing to search")
+            return
+        }
+
+        print(query)
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         repoListViewModel.clearData()
+    }
+    
+    @objc func callSearchAPI(_ searchBar: UISearchBar) {
+        guard let query = searchBar.text, query.trimmingCharacters(in: .whitespaces) != "" else {
+            print("nothing to search")
+            return
+        }
+        if NetworkMonitor.shared.isReachable {
+            repoListViewModel.callSearchAPI(query: query, isNewRequest: true)
+        } else {
+            hideLoader()
+            
+        }
     }
     
 }
@@ -228,6 +294,28 @@ extension RepoListViewController {
         if segue.identifier == segueIdOfDetailsVC {
             if let destVC = segue.destination as? RepoDetailsViewController {
                 destVC.repoDetailsViewModel.repoObj = repoListViewModel.selectedRepo
+            }
+        }
+    }
+    
+}
+
+extension RepoListViewController: NetworkMonitorDelegate {
+    
+    func networkStatusChanged(status: Bool) {
+        DispatchQueue.main.async {
+            let currentStatus: NetworkStatus = status ? .online : .offline
+            self.networkStatusView.backgroundColor = currentStatus.getColor()
+            self.networkStatusLabel.text = currentStatus.getMsg()
+            
+            if currentStatus == .offline {
+                self.networkStatusHeightConstraint.constant = 20
+            } else {
+                self.view.layoutIfNeeded() // force any pending operations to finish
+                UIView.animateKeyframes(withDuration: 0.5, delay: 1.0, options: [], animations: { () -> Void in
+                    self.networkStatusHeightConstraint.constant = 0
+                    self.view.layoutIfNeeded()
+                }, completion: nil)
             }
         }
     }
